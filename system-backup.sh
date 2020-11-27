@@ -3,7 +3,9 @@ DATE=$(date +%Y-%m-%d-%H%M%S)
 DESTINATION='/backup'
 BACKUPFILES='/tmp/system-backup.list'
 MYSQLFILE="${DESTINATION}/mariadb-${DATE}.sql"
+BAYESDB='/tmp/bayes.db'
 
+sa-learn --backup > ${BAYESDB}
 mysqldump -u root --all-databases > ${MYSQLFILE} 
 
 find ${DESTINATION} -type f -mtime +7 -exec rm -f {} \;
@@ -34,10 +36,12 @@ echo '/etc/opendmarc.conf' >> ${BACKUPFILES}
 echo '/etc/opendkim.conf' >> ${BACKUPFILES}
 echo '/etc/monitrc' >> ${BACKUPFILES}
 echo '/etc/monit.d/' >> ${BACKUPFILES}
-echo ${MYSQLFILE} >> ${BACKUPFILES}
 
-tar -czpf "${DESTINATION}/backup-${DATE}.tar.gz" -T ${TMPFILE}
-rm -f ${TMPFILE} ${MYSQLFILE} 
+echo ${MYSQLFILE} >> ${BACKUPFILES}
+echo ${BAYESDB} >> ${BACKUPFILES}
+
+tar -czpf "${DESTINATION}/backup-${DATE}.tar.gz" -T ${BACKUPFILES}
+rm -f ${BACKUFILES} ${MYSQLFILE} ${BAYESDB}
 
 rclone copy "${DESTINATION}/backup-${DATE}.tar.gz" ${GOOGLEDRIVE}: 
 rclone check "${DESTINATION}/backup-${DATE}.tar.gz" ${GOOGLEDRIVE}: 
